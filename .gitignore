@@ -1,0 +1,20 @@
+# 1. IGNORUJ FOLDERY Z DANYMI I OBRAZKAMI
+data/
+datasets/
+data_kaggle/
+*.jpg
+*.png
+*.jpeg
+
+# 2. IGNORUJ MODEL I WAGI (Są za duże na Gita)
+*.onnx
+*.pt
+*.pth
+
+# 3. IGNORUJ ŚRODOWISKO I ŚMIECI PYTHONA
+venv/
+.venv/
+__pycache__/
+.ipynb_checkpoints/
+.vscode/
+.idea/
