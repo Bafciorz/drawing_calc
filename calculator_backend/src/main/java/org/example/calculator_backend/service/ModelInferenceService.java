@@ -5,6 +5,7 @@ import ai.onnxruntime.OrtEnvironment;
 import ai.onnxruntime.OrtException;
 import ai.onnxruntime.OrtSession;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.example.calculator_backend.model.enums.MathSymbol;
 import org.example.calculator_backend.model.response.PredictionResponse;
 import org.springframework.core.io.ClassPathResource;
@@ -100,5 +101,11 @@ public class ModelInferenceService {
             }
         }
         return bestIndex;
+    }
+
+    @PreDestroy
+    public void cleanup() throws OrtException {
+        if (session != null) session.close();
+        if (env != null) env.close();
     }
 }

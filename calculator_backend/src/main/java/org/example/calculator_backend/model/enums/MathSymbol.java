@@ -17,11 +17,15 @@ public enum MathSymbol {
     EIGHT(8, "8"),
     NINE(9, "9"),
 
-    PLUS(10, "+"),
-    MINUS(11, "-"),
-    MULTIPLY(12, "*"),
-    DIVIDE(13, "/"),
-    EQUALS(14, "=");
+    ADD(10, "+"),
+    DEC(11, "."),
+    DIV(12, "/"),
+    EQ(13, "="),
+    MUL(14, "*"),
+    SUB(15, "-"),
+    X(16, "x"),
+    Y(17, "y"),
+    Z(18, "z");
 
     private final int modelIndex;
     private final String value;

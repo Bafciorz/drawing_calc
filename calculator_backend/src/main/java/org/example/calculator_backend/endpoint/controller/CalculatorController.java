@@ -1,4 +1,4 @@
-package org.example.calculator_backend.endpoint.conroller;
+package org.example.calculator_backend.endpoint.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.calculator_backend.endpoint.CalculatorEndpoint;
