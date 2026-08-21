@@ -1,0 +1,37 @@
+package org.example.calculator_backend.model.enums;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
+public enum MathSymbol {
+    ZERO(0, "0"),
+    ONE(1, "1"),
+    TWO(2, "2"),
+    THREE(3, "3"),
+    FOUR(4, "4"),
+    FIVE(5, "5"),
+    SIX(6, "6"),
+    SEVEN(7, "7"),
+    EIGHT(8, "8"),
+    NINE(9, "9"),
+
+    PLUS(10, "+"),
+    MINUS(11, "-"),
+    MULTIPLY(12, "*"),
+    DIVIDE(13, "/"),
+    EQUALS(14, "=");
+
+    private final int modelIndex;
+    private final String value;
+
+    public static MathSymbol fromModelIndex(int index) {
+        for (MathSymbol symbol : values()) {
+            if (symbol.getModelIndex() == index) {
+                return symbol;
+            }
+        }
+        throw new IllegalArgumentException("Model returned undefined class index: " + index);
+    }
+}
