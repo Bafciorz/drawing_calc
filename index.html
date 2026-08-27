@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Kalkulator - Segmentacja</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
+        canvas { border: 2px solid #333; background-color: white; cursor: crosshair; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .controls { margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; margin: 0 10px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 5px; }
+        button:hover { background-color: #0056b3; }
+        button.danger { background-color: #dc3545; }
+        button.danger:hover { background-color: #a71d2a; }
+        #info { margin-top: 30px; font-size: 18px; color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+    <h2>Narysuj równanie (np. 2 + 2)</h2>
+    <p>Postaraj się zachować odstępy między znakami!</p>
+    
+    <canvas id="drawingCanvas" width="800" height="280"></canvas>
+
+    <div class="controls">
+        <button class="danger" onclick="clearCanvas()">Wyczyść</button>
+        <button onclick="testSegmentation()">Testuj Wycinanie (Segmentacja)</button>
+    </div>
+
+    <div id="info">Narysuj coś i kliknij "Testuj Wycinanie".</div>
+
+    <script>
+        const canvas = document.getElementById('drawingCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.lineWidth = 15;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "black";
+
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                ctx.lineTo(e.offsetX, e.offsetY);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => isDrawing = false);
+        canvas.addEventListener('mouseout', () => isDrawing = false);
+
+        function clearCanvas() {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = "black";
+            document.getElementById('info').innerText = "Narysuj coś i kliknij \"Testuj Wycinanie\".";
+        }
+
+        function testSegmentation() {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+
+            let inSegment = false;
+            let startX = 0;
+            let currentMinY = canvas.height;
+            let currentMaxY = 0;
+            const segments = [];
+
+            for (let x = 0; x < canvas.width; x++) {
+                let colHasBlack = false;
+                let colMinY = canvas.height;
+                let colMaxY = 0;
+
+                for (let y = 0; y < canvas.height; y++) {
+                    let idx = (y * canvas.width + x) * 4;
+                    
+                    if (data[idx] < 128) { 
+                        colHasBlack = true;
+                        if (y < colMinY) colMinY = y;
+                        if (y > colMaxY) colMaxY = y;
+                    }
+                }
+
+                if (colHasBlack) {
+                    if (!inSegment) {
+                        inSegment = true;
+                        startX = x;
+                        currentMinY = colMinY;
+                        currentMaxY = colMaxY;
+                    } else {
+                        if (colMinY < currentMinY) currentMinY = colMinY;
+                        if (colMaxY > currentMaxY) currentMaxY = colMaxY;
+                    }
+                } else {
+                    if (inSegment) {
+                        inSegment = false;
+                        
+                        if (x - startX > 5) {
+                            segments.push({
+                                x: startX,
+                                y: currentMinY,
+                                width: x - startX,
+                                height: currentMaxY - currentMinY
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (inSegment && canvas.width - startX > 5) {
+                segments.push({ x: startX, y: currentMinY, width: canvas.width - startX, height: currentMaxY - currentMinY });
+            }
+
+            ctx.strokeStyle = "red";
+            ctx.lineWidth = 3;
+            segments.forEach(seg => {
+                ctx.strokeRect(seg.x - 10, seg.y - 10, seg.width + 20, seg.height + 20);
+            });
+            ctx.strokeStyle = "black";
+
+            document.getElementById('info').innerText = `Znaleziono ${segments.length} znak(i/ów)!`;
+            console.log(segments);
+        }
+    </script>
+</body>
+</html>
