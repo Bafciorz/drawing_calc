@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Kalkulator - Segmentacja</title>
+    <title>AI Kalkulator - Pełne Równanie</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
         canvas { border: 2px solid #333; background-color: white; cursor: crosshair; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
@@ -12,22 +12,22 @@
         button:hover { background-color: #0056b3; }
         button.danger { background-color: #dc3545; }
         button.danger:hover { background-color: #a71d2a; }
-        #info { margin-top: 30px; font-size: 18px; color: #2c3e50; }
+        #info { margin-top: 30px; font-size: 24px; font-weight: bold; color: #2c3e50; }
     </style>
 </head>
 <body>
 
-    <h2>Narysuj równanie (np. 2 + 2)</h2>
-    <p>Postaraj się zachować odstępy między znakami!</p>
+    <h2>Narysuj całe równanie (np. 2 + 2)</h2>
+    <p>Zachowaj widoczne odstępy między znakami!</p>
     
     <canvas id="drawingCanvas" width="800" height="280"></canvas>
 
     <div class="controls">
         <button class="danger" onclick="clearCanvas()">Wyczyść</button>
-        <button onclick="testSegmentation()">Testuj Wycinanie (Segmentacja)</button>
+        <button onclick="recognizeEquation()">Rozpoznaj równanie</button>
     </div>
 
-    <div id="info">Narysuj coś i kliknij "Testuj Wycinanie".</div>
+    <div id="info">Czekam na Twoje równanie...</div>
 
     <script>
         const canvas = document.getElementById('drawingCanvas');
@@ -45,25 +45,26 @@
             ctx.beginPath();
             ctx.moveTo(e.offsetX, e.offsetY);
         });
-
+        
         canvas.addEventListener('mousemove', (e) => {
             if (isDrawing) {
                 ctx.lineTo(e.offsetX, e.offsetY);
                 ctx.stroke();
             }
         });
-
+        
         canvas.addEventListener('mouseup', () => isDrawing = false);
         canvas.addEventListener('mouseout', () => isDrawing = false);
 
         function clearCanvas() {
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.strokeStyle = "black";
-            document.getElementById('info').innerText = "Narysuj coś i kliknij \"Testuj Wycinanie\".";
+            document.getElementById('info').innerText = "Czekam na Twoje równanie...";
         }
 
-        function testSegmentation() {
+        function recognizeEquation() {
+            document.getElementById('info').innerText = "AI myśli...";
+
             const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const data = imgData.data;
 
@@ -80,7 +81,6 @@
 
                 for (let y = 0; y < canvas.height; y++) {
                     let idx = (y * canvas.width + x) * 4;
-                    
                     if (data[idx] < 128) { 
                         colHasBlack = true;
                         if (y < colMinY) colMinY = y;
@@ -101,14 +101,8 @@
                 } else {
                     if (inSegment) {
                         inSegment = false;
-                        
                         if (x - startX > 5) {
-                            segments.push({
-                                x: startX,
-                                y: currentMinY,
-                                width: x - startX,
-                                height: currentMaxY - currentMinY
-                            });
+                            segments.push({ x: startX, y: currentMinY, width: x - startX, height: currentMaxY - currentMinY });
                         }
                     }
                 }
@@ -118,15 +112,58 @@
                 segments.push({ x: startX, y: currentMinY, width: canvas.width - startX, height: currentMaxY - currentMinY });
             }
 
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 3;
-            segments.forEach(seg => {
-                ctx.strokeRect(seg.x - 10, seg.y - 10, seg.width + 20, seg.height + 20);
-            });
-            ctx.strokeStyle = "black";
+            if (segments.length === 0) {
+                document.getElementById('info').innerText = "Nic nie narysowano!";
+                return;
+            }
 
-            document.getElementById('info').innerText = `Znaleziono ${segments.length} znak(i/ów)!`;
-            console.log(segments);
+            const padding = 15;
+            const promises = segments.map((seg, index) => {
+                return new Promise((resolve) => {
+                    let tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = seg.width + (padding * 2);
+                    tempCanvas.height = seg.height + (padding * 2);
+                    let tCtx = tempCanvas.getContext('2d');
+                    
+                    tCtx.fillStyle = "white";
+                    tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                    
+                    tCtx.drawImage(
+                        canvas, 
+                        seg.x - padding, seg.y - padding, seg.width + (padding * 2), seg.height + (padding * 2),
+                        0, 0, tempCanvas.width, tempCanvas.height
+                    );
+
+                    tempCanvas.toBlob((blob) => {
+                        resolve({ blob: blob, filename: `znak_${index}.png` });
+                    }, "image/png");
+                });
+            });
+
+            Promise.all(promises).then(files => {
+                const formData = new FormData();
+                
+                files.forEach(fileObj => {
+                    formData.append("files", fileObj.blob, fileObj.filename);
+                });
+
+                fetch("http://localhost:8080/calculator/recognize-expression", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Błąd serwera");
+                    return response.json();
+                })
+                .then(data => {
+                    const equation = data.predictions.map(item => item.recognizedSymbol).join('');
+                    document.getElementById('info').innerText = "Rozpoznano: " + equation;
+                })
+                .catch(error => {
+                    console.error("Błąd:", error);
+                    document.getElementById('info').innerText = "Wystąpił błąd podczas wnioskowania.";
+                });
+            });
         }
     </script>
 </body>

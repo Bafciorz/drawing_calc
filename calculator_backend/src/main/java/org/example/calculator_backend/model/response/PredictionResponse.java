@@ -1,12 +1,10 @@
 package org.example.calculator_backend.model.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class PredictionResponse {
     private String recognizedSymbol;
 }
