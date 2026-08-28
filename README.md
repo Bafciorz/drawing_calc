@@ -8,6 +8,7 @@ A full-stack web application that allows users to draw mathematical equations on
 * **Symbolic Math & Algebra**: Goes beyond simple arithmetic. It can simplify expressions (e.g., x+x -> 2*x) and solve equations (e.g., 3x+2=4 -> x=2/3).
 * **Smart Image Preprocessing**: Implements custom "letterboxing" algorithms to preserve the aspect ratio of drawn characters (preventing stretching of symbols like -), scaling them perfectly into a 28x28 pixel canvas for the ONNX model.
 * **Vertical Slice Architecture**: Clean separation of concerns on the backend (Facade pattern via CalculatorService, isolated AI and Math services).
+* **Fully Containerized**: The entire application (Java backend and Nginx frontend) is orchestrated via Docker Compose for a true zero-configuration startup.
 
 ## Tech Stack
 
@@ -19,6 +20,9 @@ A full-stack web application that allows users to draw mathematical equations on
 
 ### Frontend
 * **Vanilla JavaScript** & **HTML5 Canvas**: For capturing user drawings, segmenting individual characters via bounding boxes, and communicating with the API.
+
+### Infrastructure
+* **Docker & Docker Compose**: Multi-stage builds for the Java backend and a lightweight Nginx alpine image for serving the frontend.
 
 ## How It Works
 
@@ -54,13 +58,20 @@ Consumes: multipart/form-data
 ## Setup & Installation
 
 **Prerequisites:**
-* Java 21+
-* Maven
+* Docker (Docker Desktop on Windows/Mac or Docker Engine on Linux)
 
-1. Clone the repository.
-2. Navigate to the backend directory and run the Spring Boot application:
+1. Clone the repository and navigate to the project root directory.
+2. Build and start the containers in the background:
    ```bash
-   ./mvnw spring-boot:run
+   docker compose up -d
    ```
-3. Open index.html in your favorite web browser (no frontend build tools required).
+3. Open your web browser and go to:
+   ```text
+   http://localhost
+   ```
 4. Start drawing equations!
+
+**To stop the application, run:**
+```bash
+docker compose down
+```
