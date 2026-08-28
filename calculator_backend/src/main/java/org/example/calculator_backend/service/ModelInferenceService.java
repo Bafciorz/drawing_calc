@@ -71,10 +71,31 @@ public class ModelInferenceService {
         return image;
     }
 
-    private float[] preprocessImage(BufferedImage originalImage){
-        BufferedImage resizedImage = new BufferedImage(28,28,BufferedImage.TYPE_BYTE_GRAY);
+    private float[] preprocessImage(BufferedImage originalImage) {
+        int originalWidth = originalImage.getWidth();
+        int originalHeight = originalImage.getHeight();
+
+        int targetBoxSize = 20;
+
+        double scale = (double) targetBoxSize / Math.max(originalWidth, originalHeight);
+        int newWidth = (int) (originalWidth * scale);
+        int newHeight = (int) (originalHeight * scale);
+
+        if (newWidth == 0) newWidth = 1;
+        if (newHeight == 0) newHeight = 1;
+
+
+        Image scaledImage = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+
+        BufferedImage resizedImage = new BufferedImage(28, 28, BufferedImage.TYPE_BYTE_GRAY);
         Graphics2D g2d = resizedImage.createGraphics();
-        g2d.drawImage(originalImage.getScaledInstance(28,28,Image.SCALE_SMOOTH), 0, 0, null);
+
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, 28, 28);
+
+        int xOffset = (28 - newWidth) / 2;
+        int yOffset = (28 - newHeight) / 2;
+        g2d.drawImage(scaledImage, xOffset, yOffset, null);
         g2d.dispose();
 
         float[] inputData = new float[28 * 28];
