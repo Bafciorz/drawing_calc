@@ -3,6 +3,7 @@ package org.example.calculator_backend.endpoint;
 
 import org.example.calculator_backend.model.response.PredictionResponse;
 import org.example.calculator_backend.model.response.list.ListPredictionResponse;
+import org.example.calculator_backend.model.response.ResultResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,9 +15,14 @@ import java.util.List;
 @RequestMapping("/calculator")
 public interface CalculatorEndpoint {
 
+    //leftover for testing
     @PostMapping("/recognize")
     ResponseEntity<PredictionResponse> recognizeImage(@RequestParam("image") MultipartFile file);
 
+    //leftover for testing
     @PostMapping("/recognize-expression")
     ResponseEntity<ListPredictionResponse> recognizeExpression(@RequestParam("files") List<MultipartFile> files);
+
+    @PostMapping("/evaluate_result")
+    ResponseEntity<ResultResponse> evaluateResult(@RequestParam("files") List<MultipartFile> files);
 }

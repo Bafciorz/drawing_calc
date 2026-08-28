@@ -3,7 +3,9 @@ package org.example.calculator_backend.endpoint.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.calculator_backend.endpoint.CalculatorEndpoint;
 import org.example.calculator_backend.model.response.PredictionResponse;
+import org.example.calculator_backend.model.response.ResultResponse;
 import org.example.calculator_backend.model.response.list.ListPredictionResponse;
+import org.example.calculator_backend.service.CalculatorService;
 import org.example.calculator_backend.service.ModelInferenceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,6 +21,7 @@ import java.util.List;
 public class CalculatorController implements CalculatorEndpoint {
 
     private final ModelInferenceService modelInferenceService;
+    private final CalculatorService calculatorService;
 
     @Override
     public ResponseEntity<PredictionResponse> recognizeImage(MultipartFile file){
@@ -29,6 +32,12 @@ public class CalculatorController implements CalculatorEndpoint {
     @Override
     public ResponseEntity<ListPredictionResponse> recognizeExpression(List<MultipartFile> files){
         ListPredictionResponse response = modelInferenceService.recognizeExpression(files);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<ResultResponse> evaluateResult(List<MultipartFile> files){
+        ResultResponse response = calculatorService.evaluateExpression(files);
         return ResponseEntity.ok(response);
     }
 }
