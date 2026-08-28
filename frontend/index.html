@@ -147,7 +147,7 @@
                     formData.append("files", fileObj.blob, fileObj.filename);
                 });
 
-                fetch("http://localhost:8080/calculator/recognize-expression", {
+                fetch("http://localhost:8080/calculator/evaluate_result", {
                     method: "POST",
                     body: formData
                 })
@@ -156,8 +156,10 @@
                     return response.json();
                 })
                 .then(data => {
-                    const equation = data.predictions.map(item => item.recognizedSymbol).join('');
-                    document.getElementById('info').innerText = "Rozpoznano: " + equation;
+                    document.getElementById('info').innerHTML = 
+                        "Rozpoznane przez AI: <b>" + data.expression + "</b><br>" +
+                        "Wysłane do obliczeń: <b>" + data.expression + "</b><br>" +
+                        "Wynik Symji: <b style='color: green;'>" + data.result + "</b>";
                 })
                 .catch(error => {
                     console.error("Błąd:", error);
